@@ -1,0 +1,453 @@
+// ============================================
+// FILE: lib/services/database_service.dart
+// ============================================
+import 'dart:io';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import '../models/user.dart';
+import '../models/lesson.dart';
+import '../models/quiz.dart';
+import '../models/progress.dart';
+
+class DatabaseService {
+  static Database? _database;
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await initDatabase();
+    return _database!;
+  }
+
+  Future<Database> initDatabase() async {
+    // For desktop support
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final path = join(documentsDirectory.path, 'text_formatting_app.db');
+
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDatabase,
+    );
+  }
+
+  Future<void> _createDatabase(Database db, int version) async {
+    // Users table
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        avatarId TEXT NOT NULL,
+        level INTEGER DEFAULT 1,
+        xp INTEGER DEFAULT 0,
+        createdAt TEXT NOT NULL
+      )
+    ''');
+
+    // Lessons table
+    await db.execute('''
+      CREATE TABLE lessons (
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT NOT NULL,
+        content TEXT NOT NULL,
+        xpReward INTEGER DEFAULT 10,
+        orderNum INTEGER NOT NULL
+      )
+    ''');
+
+    // Quiz questions table
+    await db.execute('''
+      CREATE TABLE quiz_questions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lessonId INTEGER NOT NULL,
+        question TEXT NOT NULL,
+        options TEXT NOT NULL,
+        correctAnswer INTEGER NOT NULL,
+        FOREIGN KEY (lessonId) REFERENCES lessons (id)
+      )
+    ''');
+
+    // Progress table
+    await db.execute('''
+      CREATE TABLE progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        lessonId INTEGER NOT NULL,
+        completed INTEGER DEFAULT 0,
+        quizScore INTEGER,
+        completedAt TEXT,
+        FOREIGN KEY (userId) REFERENCES users (id),
+        FOREIGN KEY (lessonId) REFERENCES lessons (id)
+      )
+    ''');
+
+    // Insert default lessons
+    await _insertDefaultLessons(db);
+  }
+
+  Future<void> _insertDefaultLessons(Database db) async {
+    final lessons = [
+      {
+        'id': 1,
+        'title': 'Bold Text',
+        'category': 'Basic Formatting',
+        'description': 'Learn how to make text bold',
+        'content':
+            'Bold text is used to emphasize important words.|||To make text bold, select the text and click the Bold button (B) or press Ctrl+B.|||Bold text stands out and catches the reader\'s attention.|||Try it: Select any text and make it bold!',
+        'xpReward': 10,
+        'orderNum': 1,
+      },
+      {
+        'id': 2,
+        'title': 'Italic Text',
+        'category': 'Basic Formatting',
+        'description': 'Learn how to italicize text',
+        'content':
+            'Italic text is slanted and used for emphasis or titles.|||To italicize text, select it and click the Italic button (I) or press Ctrl+I.|||Italics are often used for book titles, foreign words, or subtle emphasis.|||Practice: Make some text italic!',
+        'xpReward': 10,
+        'orderNum': 2,
+      },
+      {
+        'id': 3,
+        'title': 'Underline Text',
+        'category': 'Basic Formatting',
+        'description': 'Learn how to underline text',
+        'content':
+            'Underlined text has a line beneath it.|||To underline, select text and click the Underline button (U) or press Ctrl+U.|||Use underlines sparingly - they can be confused with hyperlinks.|||Your turn: Underline some text!',
+        'xpReward': 10,
+        'orderNum': 3,
+      },
+      {
+        'id': 4,
+        'title': 'Text Alignment',
+        'category': 'Paragraph Formatting',
+        'description':
+            'Learn about left, center, right, and justified alignment',
+        'content':
+            'Text alignment controls how text lines up on the page.|||Left alignment: Text starts at the left margin (most common).|||Center alignment: Text is centered between margins (used for titles).|||Right alignment: Text aligns to the right margin.|||Justified: Text spreads evenly from left to right margins.|||Try different alignments to see how they look!',
+        'xpReward': 15,
+        'orderNum': 4,
+      },
+      {
+        'id': 5,
+        'title': 'Line Spacing',
+        'category': 'Paragraph Formatting',
+        'description': 'Control space between lines',
+        'content':
+            'Line spacing is the vertical space between lines of text.|||Single spacing: Lines are close together.|||1.5 spacing: Medium spacing for easier reading.|||Double spacing: Maximum spacing, often used for drafts.|||Good spacing makes documents easier to read!|||Experiment with different line spacings.',
+        'xpReward': 15,
+        'orderNum': 5,
+      },
+      {
+        'id': 6,
+        'title': 'Indentation',
+        'category': 'Paragraph Formatting',
+        'description': 'Learn about indenting paragraphs',
+        'content':
+            'Indentation moves text away from the margin.|||First line indent: Only the first line is indented (common for paragraphs).|||Hanging indent: All lines except the first are indented (used for bibliographies).|||Left indent: Entire paragraph moves right.|||Right indent: Entire paragraph moves left from right margin.|||Practice creating different indents!',
+        'xpReward': 15,
+        'orderNum': 6,
+      },
+      {
+        'id': 7,
+        'title': 'Highlighting',
+        'category': 'Advanced Formatting',
+        'description': 'Add background color to text',
+        'content':
+            'Highlighting adds a colored background to text.|||It helps important information stand out.|||Use bright colors like yellow for highlighting.|||Don\'t overuse highlighting - it loses effectiveness.|||Highlight key terms or important notes!',
+        'xpReward': 20,
+        'orderNum': 7,
+      },
+      {
+        'id': 8,
+        'title': 'Superscript & Subscript',
+        'category': 'Advanced Formatting',
+        'description': 'Raise or lower text',
+        'content':
+            'Superscript raises text above the baseline (e.g., x²).|||Subscript lowers text below the baseline (e.g., H₂O).|||Superscripts are used for exponents and footnotes.|||Subscripts are used in chemical formulas and math.|||Try creating: 2⁴ = 16 and H₂O!',
+        'xpReward': 20,
+        'orderNum': 8,
+      },
+      {
+        'id': 9,
+        'title': 'Strikethrough',
+        'category': 'Advanced Formatting',
+        'description': 'Draw a line through text',
+        'content':
+            'Strikethrough puts a horizontal line through text.|||It shows that text has been removed or is no longer valid.|||Commonly used in editing and revision.|||To apply: Select text and use the strikethrough button.|||Practice: Mark some text as deleted!',
+        'xpReward': 20,
+        'orderNum': 9,
+      },
+      {
+        'id': 10,
+        'title': 'Small Caps',
+        'category': 'Advanced Formatting',
+        'description': 'Use small capital letters',
+        'content':
+            'Small caps make lowercase letters look like smaller capitals.|||EXAMPLE: THIS IS SMALL CAPS.|||Often used for acronyms or stylistic purposes.|||Creates a professional, elegant look.|||Try formatting text in small caps!',
+        'xpReward': 20,
+        'orderNum': 10,
+      },
+    ];
+
+    for (var lesson in lessons) {
+      await db.insert('lessons', lesson);
+    }
+
+    // Insert quiz questions for each lesson
+    await _insertQuizQuestions(db);
+  }
+
+  Future<void> _insertQuizQuestions(Database db) async {
+    final quizQuestions = [
+      // Lesson 1: Bold
+      {
+        'lessonId': 1,
+        'question': 'What keyboard shortcut makes text bold?',
+        'options': 'Ctrl+B|||Ctrl+I|||Ctrl+U|||Ctrl+H',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 1,
+        'question': 'Bold text is used to:',
+        'options':
+            'Emphasize important words|||Make text smaller|||Delete text|||Change font color',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 1,
+        'question': 'Which button applies bold formatting?',
+        'options': 'B|||I|||U|||S',
+        'correctAnswer': 0
+      },
+
+      // Lesson 2: Italic
+      {
+        'lessonId': 2,
+        'question': 'What shortcut italicizes text?',
+        'options': 'Ctrl+I|||Ctrl+B|||Ctrl+U|||Ctrl+T',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 2,
+        'question': 'Italics are often used for:',
+        'options': 'Book titles|||Email addresses|||Phone numbers|||Dates',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 2,
+        'question': 'Italic text appears:',
+        'options': 'Slanted|||Bold|||Underlined|||Colored',
+        'correctAnswer': 0
+      },
+
+      // Lesson 3: Underline
+      {
+        'lessonId': 3,
+        'question': 'The underline shortcut is:',
+        'options': 'Ctrl+U|||Ctrl+B|||Ctrl+I|||Ctrl+L',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 3,
+        'question': 'Underlines can be confused with:',
+        'options': 'Hyperlinks|||Bold text|||Italic text|||Headers',
+        'correctAnswer': 0
+      },
+
+      // Lesson 4: Alignment
+      {
+        'lessonId': 4,
+        'question': 'Which alignment is most common for body text?',
+        'options': 'Left|||Center|||Right|||Justified',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 4,
+        'question': 'Center alignment is best for:',
+        'options': 'Titles|||Paragraphs|||Lists|||Footnotes',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 4,
+        'question': 'Justified alignment:',
+        'options':
+            'Spreads text evenly|||Centers text|||Right aligns text|||Bolds text',
+        'correctAnswer': 0
+      },
+
+      // Lesson 5: Line Spacing
+      {
+        'lessonId': 5,
+        'question': 'Double spacing is often used for:',
+        'options': 'Drafts|||Final copies|||Titles|||Footnotes',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 5,
+        'question': 'Line spacing controls:',
+        'options':
+            'Vertical space between lines|||Horizontal space|||Font size|||Text color',
+        'correctAnswer': 0
+      },
+
+      // Lesson 6: Indentation
+      {
+        'lessonId': 6,
+        'question': 'A hanging indent is used for:',
+        'options': 'Bibliographies|||Paragraphs|||Titles|||Headers',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 6,
+        'question': 'First line indent affects:',
+        'options':
+            'Only the first line|||All lines|||Last line only|||No lines',
+        'correctAnswer': 0
+      },
+
+      // Lesson 7: Highlighting
+      {
+        'lessonId': 7,
+        'question': 'Highlighting adds:',
+        'options': 'Background color|||Text color|||Border|||Shadow',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 7,
+        'question': 'The most common highlight color is:',
+        'options': 'Yellow|||Red|||Blue|||Green',
+        'correctAnswer': 0
+      },
+
+      // Lesson 8: Super/Subscript
+      {
+        'lessonId': 8,
+        'question': 'In H₂O, the 2 is:',
+        'options': 'Subscript|||Superscript|||Bold|||Italic',
+        'correctAnswer': 0
+      },
+      {
+        'lessonId': 8,
+        'question': 'Superscript is used for:',
+        'options': 'Exponents|||Chemical formulas|||Addresses|||Names',
+        'correctAnswer': 0
+      },
+
+      // Lesson 9: Strikethrough
+      {
+        'lessonId': 9,
+        'question': 'Strikethrough shows text is:',
+        'options': 'Removed or invalid|||Important|||New|||Highlighted',
+        'correctAnswer': 0
+      },
+
+      // Lesson 10: Small Caps
+      {
+        'lessonId': 10,
+        'question': 'Small caps make lowercase letters look like:',
+        'options':
+            'Smaller capitals|||Larger letters|||Bold text|||Italic text',
+        'correctAnswer': 0
+      },
+    ];
+
+    for (var question in quizQuestions) {
+      await db.insert('quiz_questions', question);
+    }
+  }
+
+  // User CRUD operations
+  Future<int> createUser(User user) async {
+    final db = await database;
+    return await db.insert('users', user.toMap());
+  }
+
+  Future<User?> getUser(int id) async {
+    final db = await database;
+    final maps = await db.query('users', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    return User.fromMap(maps.first);
+  }
+
+  Future<List<User>> getAllUsers() async {
+    final db = await database;
+    final maps = await db.query('users', orderBy: 'createdAt DESC');
+    return maps.map((map) => User.fromMap(map)).toList();
+  }
+
+  Future<int> updateUser(User user) async {
+    final db = await database;
+    return await db
+        .update('users', user.toMap(), where: 'id = ?', whereArgs: [user.id]);
+  }
+
+  // Lesson operations
+  Future<List<Lesson>> getAllLessons() async {
+    final db = await database;
+    final maps = await db.query('lessons', orderBy: 'orderNum ASC');
+    return maps.map((map) => Lesson.fromMap(map)).toList();
+  }
+
+  Future<Lesson?> getLesson(int id) async {
+    final db = await database;
+    final maps = await db.query('lessons', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    return Lesson.fromMap(maps.first);
+  }
+
+  // Quiz operations
+  Future<List<QuizQuestion>> getQuizQuestions(int lessonId) async {
+    final db = await database;
+    final maps = await db
+        .query('quiz_questions', where: 'lessonId = ?', whereArgs: [lessonId]);
+    return maps.map((map) => QuizQuestion.fromMap(map)).toList();
+  }
+
+  // Progress operations
+  Future<int> saveProgress(Progress progress) async {
+    final db = await database;
+    final existing = await db.query(
+      'progress',
+      where: 'userId = ? AND lessonId = ?',
+      whereArgs: [progress.userId, progress.lessonId],
+    );
+
+    if (existing.isEmpty) {
+      return await db.insert('progress', progress.toMap());
+    } else {
+      return await db.update(
+        'progress',
+        progress.toMap(),
+        where: 'userId = ? AND lessonId = ?',
+        whereArgs: [progress.userId, progress.lessonId],
+      );
+    }
+  }
+
+  Future<List<Progress>> getUserProgress(int userId) async {
+    final db = await database;
+    final maps =
+        await db.query('progress', where: 'userId = ?', whereArgs: [userId]);
+    return maps.map((map) => Progress.fromMap(map)).toList();
+  }
+
+  Future<Progress?> getLessonProgress(int userId, int lessonId) async {
+    final db = await database;
+    final maps = await db.query(
+      'progress',
+      where: 'userId = ? AND lessonId = ?',
+      whereArgs: [userId, lessonId],
+    );
+    if (maps.isEmpty) return null;
+    return Progress.fromMap(maps.first);
+  }
+}
