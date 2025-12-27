@@ -8,16 +8,16 @@ class LevelBadgeWidget extends StatelessWidget {
   final int xp;
 
   const LevelBadgeWidget({
-    Key? key,
+    super.key,
     required this.level,
     required this.xp,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final currentLevelXP = (level - 1) * 100;
     final xpInCurrentLevel = xp - currentLevelXP;
-    final xpForNextLevel = 100;
+    const xpForNextLevel = 100;
     final progress = xpInCurrentLevel / xpForNextLevel;
 
     return Container(

@@ -8,7 +8,7 @@ import '../providers/progress_provider.dart';
 import '../providers/user_provider.dart';
 
 class ExamScreen extends StatefulWidget {
-  const ExamScreen({Key? key}) : super(key: key);
+  const ExamScreen({super.key});
 
   @override
   State<ExamScreen> createState() => _ExamScreenState();

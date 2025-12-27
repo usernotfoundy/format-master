@@ -8,7 +8,7 @@ import 'quiz_screen.dart';
 class LessonScreen extends StatefulWidget {
   final Lesson lesson;
 
-  const LessonScreen({Key? key, required this.lesson}) : super(key: key);
+  const LessonScreen({super.key, required this.lesson});
 
   @override
   State<LessonScreen> createState() => _LessonScreenState();
@@ -144,8 +144,9 @@ class _LessonScreenState extends State<LessonScreen> {
     if (title.contains('spacing')) return Icons.format_line_spacing;
     if (title.contains('indent')) return Icons.format_indent_increase;
     if (title.contains('highlight')) return Icons.highlight;
-    if (title.contains('super') || title.contains('sub'))
+    if (title.contains('super') || title.contains('sub')) {
       return Icons.superscript;
+    }
     if (title.contains('strike')) return Icons.strikethrough_s;
     if (title.contains('caps')) return Icons.text_fields;
     return Icons.article;

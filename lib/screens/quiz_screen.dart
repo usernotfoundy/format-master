@@ -11,7 +11,7 @@ import '../providers/progress_provider.dart';
 class QuizScreen extends StatefulWidget {
   final Lesson lesson;
 
-  const QuizScreen({Key? key, required this.lesson}) : super(key: key);
+  const QuizScreen({super.key, required this.lesson});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();

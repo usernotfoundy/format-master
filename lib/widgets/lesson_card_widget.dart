@@ -10,11 +10,11 @@ class LessonCardWidget extends StatelessWidget {
   final VoidCallback onTap;
 
   const LessonCardWidget({
-    Key? key,
+    super.key,
     required this.lesson,
     required this.isCompleted,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

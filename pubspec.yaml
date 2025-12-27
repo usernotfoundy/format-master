@@ -16,6 +16,7 @@ dependencies:
   # Local Database
   sqflite: ^2.3.0
   sqflite_common_ffi: ^2.3.0  # For desktop support
+  sqflite_common_ffi_web: ^0.4.0  # For web support
   path_provider: ^2.1.1
   path: ^1.8.3
   

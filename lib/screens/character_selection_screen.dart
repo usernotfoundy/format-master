@@ -8,7 +8,7 @@ import '../providers/progress_provider.dart';
 import 'dashboard_screen.dart';
 
 class CharacterSelectionScreen extends StatefulWidget {
-  const CharacterSelectionScreen({Key? key}) : super(key: key);
+  const CharacterSelectionScreen({super.key});
 
   @override
   State<CharacterSelectionScreen> createState() =>
