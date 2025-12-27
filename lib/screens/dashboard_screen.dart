@@ -10,6 +10,7 @@ import '../widgets/level_badge_widget.dart';
 import '../widgets/lesson_card_widget.dart';
 import 'lesson_screen.dart';
 import 'exam_screen.dart';
+import 'profile_selection_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -41,7 +42,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
+        automaticallyImplyLeading: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: 'Switch Profile',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileSelectionScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {
@@ -49,7 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('About'),
-                  content: const Text('Text Formatting Master\n\n'
+                  content: const Text('FormatMaster\n\n'
                       'Learn text formatting through interactive lessons, '
                       'quizzes, and practice exercises. Complete all lessons '
                       'to unlock the final exam!'),
