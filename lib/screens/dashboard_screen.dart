@@ -37,6 +37,109 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _showResetConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 30),
+            SizedBox(width: 10),
+            Text('Reset Progress'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to reset all your progress?',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 15),
+            Text(
+              'This will:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 5),
+            Text('• Reset your XP to 0'),
+            Text('• Reset your level to 1'),
+            Text('• Clear all completed lessons'),
+            Text('• Clear all quiz scores'),
+            SizedBox(height: 15),
+            Text(
+              '⚠️ This action cannot be undone!',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _resetProgress();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _resetProgress() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final progressProvider =
+        Provider.of<ProgressProvider>(context, listen: false);
+
+    await userProvider.resetProgress();
+    await progressProvider.loadUserProgress(userProvider.currentUser!.id!);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Progress has been reset successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text('About'),
+        content: const Text('FormatMaster\n\n'
+            'Learn text formatting through interactive lessons, '
+            'quizzes, and practice exercises. Complete all lessons '
+            'to unlock the final exam!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,26 +159,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('About'),
-                  content: const Text('FormatMaster\n\n'
-                      'Learn text formatting through interactive lessons, '
-                      'quizzes, and practice exercises. Complete all lessons '
-                      'to unlock the final exam!'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'reset') {
+                _showResetConfirmation();
+              } else if (value == 'about') {
+                _showAboutDialog();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'reset',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Reset Progress'),
                   ],
                 ),
-              );
-            },
+              ),
+              const PopupMenuItem(
+                value: 'about',
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue),
+                    SizedBox(width: 10),
+                    Text('About'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

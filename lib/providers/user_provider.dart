@@ -62,4 +62,18 @@ class UserProvider with ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+
+  // Reset user progress (XP and level back to default)
+  Future<void> resetProgress() async {
+    if (_currentUser == null) return;
+
+    // Reset XP and level to defaults
+    _currentUser = _currentUser!.copyWith(xp: 0, level: 1);
+    await _dbService.updateUser(_currentUser!);
+    
+    // Reset all lesson progress
+    await _dbService.resetUserProgress(_currentUser!.id!);
+    
+    notifyListeners();
+  }
 }

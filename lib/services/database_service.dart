@@ -595,4 +595,14 @@ class DatabaseService {
     if (maps.isEmpty) return null;
     return Progress.fromMap(maps.first);
   }
+
+  // Reset all progress for a user
+  Future<void> resetUserProgress(int userId) async {
+    if (kIsWeb) {
+      _webStorage['progress']!.removeWhere((p) => p['userId'] == userId);
+      return;
+    }
+    final db = await database;
+    await db.delete('progress', where: 'userId = ?', whereArgs: [userId]);
+  }
 }
