@@ -57,7 +57,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Text Formatting\nMaster',
+                  'FormatMaster',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 48,
@@ -74,12 +74,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     color: Colors.white70,
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 40),
                 Consumer<UserProvider>(
                   builder: (context, userProvider, child) {
                     if (userProvider.isLoggedIn) {
                       return Column(
                         children: [
+                          Text(
+                            'Welcome back, ${userProvider.currentUser!.username}!',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pushReplacement(

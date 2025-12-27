@@ -28,7 +28,7 @@ class Lesson {
       'description': description,
       'content': content.join('|||'),
       'xpReward': xpReward,
-      'order': order,
+      'orderNum': order,
     };
   }
 
@@ -40,7 +40,7 @@ class Lesson {
       description: map['description'],
       content: (map['content'] as String).split('|||'),
       xpReward: map['xpReward'],
-      order: map['order'],
+      order: map['order'] ?? map['orderNum'],
     );
   }
 }
