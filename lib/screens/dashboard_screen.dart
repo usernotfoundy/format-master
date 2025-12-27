@@ -125,11 +125,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        title: const Text('About'),
-        content: const Text('FormatMaster\n\n'
-            'Learn text formatting through interactive lessons, '
-            'quizzes, and practice exercises. Complete all lessons '
-            'to unlock the final exam!'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text('📝', style: TextStyle(fontSize: 24)),
+            ),
+            const SizedBox(width: 12),
+            const Text('FormatMaster'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Learn text formatting through interactive lessons, '
+              'quizzes, and practice exercises. Complete all lessons '
+              'to unlock the final exam!',
+            ),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.code, size: 20, color: Colors.purple.shade400),
+                const SizedBox(width: 8),
+                const Text(
+                  'Developer',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Padding(
+              padding: EdgeInsets.only(left: 28),
+              child: Text(
+                'Marc Stephen Angngasing',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                'Version 1.0.0',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
