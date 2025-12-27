@@ -76,4 +76,32 @@ class UserProvider with ChangeNotifier {
     
     notifyListeners();
   }
+
+  // Delete a user profile
+  Future<void> deleteUser(int userId) async {
+    await _dbService.deleteUser(userId);
+    
+    // If the deleted user is the current user, log them out
+    if (_currentUser?.id == userId) {
+      _currentUser = null;
+    }
+    
+    notifyListeners();
+  }
+
+  // Rename user profile
+  Future<void> renameUser(int userId, String newUsername) async {
+    final user = await _dbService.getUser(userId);
+    if (user != null) {
+      final updatedUser = user.copyWith(username: newUsername);
+      await _dbService.updateUser(updatedUser);
+      
+      // Update current user if it's the same
+      if (_currentUser?.id == userId) {
+        _currentUser = updatedUser;
+      }
+      
+      notifyListeners();
+    }
+  }
 }

@@ -605,4 +605,16 @@ class DatabaseService {
     final db = await database;
     await db.delete('progress', where: 'userId = ?', whereArgs: [userId]);
   }
+
+  // Delete user and their progress
+  Future<void> deleteUser(int userId) async {
+    if (kIsWeb) {
+      _webStorage['users']!.removeWhere((u) => u['id'] == userId);
+      _webStorage['progress']!.removeWhere((p) => p['userId'] == userId);
+      return;
+    }
+    final db = await database;
+    await db.delete('progress', where: 'userId = ?', whereArgs: [userId]);
+    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
+  }
 }
